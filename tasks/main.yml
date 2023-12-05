@@ -1,0 +1,36 @@
+---
+# tasks file for ansible-mongodb
+
+- name: Print some configs.
+  debug:
+    msg: "Configured port: {{ docker_mongodb__port }} , Suffix Name: {{ docker_mongodb__name_suffix }}"
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item.path }}"
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+  with_items: "{{ docker_mongodb__directories }}"
+
+- name: Create network
+  docker_network:
+    name: "{{ docker_mongodb__network_name }}"
+    state: present
+  when: docker_mongodb__network_name is defined and docker_mongodb__network_name != ''
+
+- name: Create Docker Compose directory
+  file:
+    path: /opt/mongodb
+    state: directory
+
+- name: Copy Docker Compose template
+  template:
+    src: templates/docker-compose.j2
+    dest: /opt/mongodb/docker-compose.yml
+
+- name: Start MongoDB containers
+  docker_compose:
+    project_src: /opt/mongodb
+    state: present

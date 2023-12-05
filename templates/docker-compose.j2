@@ -1,0 +1,69 @@
+version: "2"
+
+{% if docker_mongodb__network_name %}
+networks:
+  {{ docker_mongodb__network_name }}:
+    external: true
+{% endif %}
+
+services:
+  {{ docker_mongodb__primary_name }}:
+    image: {{ docker_mongodb__image }}
+    container_name: {{ docker_mongodb__primary_name }}
+    user: root
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME={{ docker_mongodb__primary_name }}
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD={{ docker_mongodb__root_password }}
+      - MONGODB_REPLICA_SET_KEY={{ docker_mongodb__replecaset_key }}
+      - MONGODB_REPLICA_SET_NAME={{ docker_mongodb__replecaset_name }}
+      - MONGODB_USERNAME={{ docker_mongodb__first_user_username }}
+      - MONGODB_PASSWORD={{ docker_mongodb__first_user_password }}
+      - MONGODB_DATABASE={{ docker_mongodb__first_user_database_name }}
+    restart: always
+    volumes:
+      - "{{ docker_mongodb__home }}:/bitnami/mongodb"
+    ports:
+      - {{ docker_mongodb__port }}:27017
+{% if docker_mongodb__network_name %}
+    networks:
+      - {{ docker_mongodb__network_name }}
+{% endif %}
+
+  {{ docker_mongodb__secondary_name }}:
+    image: {{ docker_mongodb__image }}
+    container_name: {{ docker_mongodb__secondary_name }}
+    depends_on:
+      - {{ docker_mongodb__primary_name }}
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME={{ docker_mongodb__secondary_name }}
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST={{ docker_mongodb__primary_name }}
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD={{ docker_mongodb__root_password }}
+      - MONGODB_REPLICA_SET_KEY={{ docker_mongodb__replecaset_key }}
+      - MONGODB_REPLICA_SET_NAME={{ docker_mongodb__replecaset_name }}
+    restart: always
+{% if docker_mongodb__network_name %}
+    networks:
+      - {{ docker_mongodb__network_name }}
+{% endif %}
+
+  {{ docker_mongodb__arbiter_name }}:
+    image: {{ docker_mongodb__image }}
+    container_name: {{ docker_mongodb__arbiter_name }}
+    depends_on:
+      - {{ docker_mongodb__primary_name }}
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME={{ docker_mongodb__arbiter_name }}
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST={{ docker_mongodb__primary_name }}
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD={{ docker_mongodb__root_password }}
+      - MONGODB_REPLICA_SET_KEY={{ docker_mongodb__replecaset_key }}
+      - MONGODB_REPLICA_SET_NAME={{ docker_mongodb__replecaset_name }}
+    restart: always
+{% if docker_mongodb__network_name %}
+    networks:
+      - {{ docker_mongodb__network_name }}
+{% endif %}

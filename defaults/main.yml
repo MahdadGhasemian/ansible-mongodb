@@ -1,0 +1,32 @@
+---
+# defaults file for ansible-mongodb
+
+docker_mongodb__name: mongodb
+docker_mongodb__name_suffix: ""
+docker_mongodb__primary_name: "mongodb-primary{{ docker_mongodb__name_suffix }}"
+docker_mongodb__secondary_name: "mongodb-secondary{{ docker_mongodb__name_suffix }}"
+docker_mongodb__arbiter_name: "mongodb-arbiter{{ docker_mongodb__name_suffix }}"
+docker_mongodb__image: docker.io/bitnami/mongodb:latest
+docker_mongodb__root_password: "pass1234"
+docker_mongodb__replecaset_key: "replicasetkey"
+docker_mongodb__replecaset_name: "replecaset"
+docker_mongodb__first_user_username: "init_user"
+docker_mongodb__first_user_password: "pass1234"
+docker_mongodb__first_user_database_name: "init_database"
+docker_mongodb__home: "/root/mongodb"
+docker_mongodb__pull_image: yes
+docker_mongodb__remove_existing_container: yes
+docker_mongodb__port: 27030
+docker_mongodb__network_name: "mongodb-network"
+
+docker_mongodb__directory_volumes:
+  - "{{ docker_mongodb__home }}:/bitnami/mongodb"
+
+docker_mongodb_primary__ports:
+  - "{{ docker_mongodb__port }}:27017"
+
+docker_mongodb__directories:
+  - path: "{{ docker_mongodb__home }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
